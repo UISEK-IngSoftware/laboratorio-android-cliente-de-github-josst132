@@ -31,34 +31,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchRepositories() {
-        val apiServices: GitHubApiServices = RetrofitClient.GitHubApiServices
-        val call = apiServices.getRepos()
-        call.enqueue(object : Callback<List<Repo>> {
-            override fun onResponse(call: Call<List<Repo>?>, response: Response<List<Repo>?>) {
-                if (response.isSuccessful){
-                val repos = response.body()
-                if (response != null && repos.isNotEmpty()) {
-                    reposAdapter.updateRepositories(repos)
+        val apiService: GitHubApiServices = RetrofitClient.GitHubApiServices
+        val call = apiService.getRepos()
 
+        call.enqueue(object: Callback<List<Repo>> {
+            override fun onResponse(call: Call<List<Repo>?>, response: Response<List<Repo>?>) {
+                if(response.isSuccessful) {
+                    val repos = response.body()
+                    if (repos != null && repos.isNotEmpty()) {
+                        reposAdapter.updateRepositories(repos)
+                    } else {
+                        showMessage("No se encontraron repositorios")
+                    }
                 } else {
-                    showMessage("No se encontraron repositorios")
+                    showMessage("Error al cargar los repositorios")
                 }
-            } else{
-                val errorMesage = when(response.code()) {
-                    401 -> "no autorizado"
-                    403 -> "prohibido"
-                    404 -> "no encontrado"
-                    else -> "Error ${response.code()}"
-                }
-                    showMessage("Error: $errorMesage")
             }
-        }
 
             override fun onFailure(call: Call<List<Repo>?>, t: Throwable) {
-                showMessage("No se pudieron cargar los repositorios")
+                showMessage("No se pudieron cargar los repositorio")
             }
         })
     }
+
     private fun showMessage (message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
