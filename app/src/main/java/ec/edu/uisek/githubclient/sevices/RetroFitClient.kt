@@ -2,7 +2,7 @@ package ec.edu.uisek.githubclient.services
 
 import android.util.Log
 import ec.edu.uisek.githubclient.BuildConfig
-import ec.edu.uisek.githubclient.sevices.GitHubApiServices
+import ec.edu.uisek.githubclient.services.GithubApiService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -80,7 +80,7 @@ object RetrofitClient {
      * Instancia del servicio de la API de GitHub
      * Se crea de forma lazy (solo cuando se necesita por primera vez)
      */
-    val GitHubApiServices: GitHubApiServices by lazy {
-        retrofit.create(GitHubApiServices::class.java)
+    val GitHubApiServices: GithubApiService by lazy {
+        retrofit.create(GithubApiService::class.java)
     }
 }
