@@ -7,4 +7,11 @@
     <string name="test_lang">Kotlin</string>
     <string name="cancel">Cancelar</string>
     <string name="save">Guardar</string>
+    <string name="edit_repo">Editar repositorio</string>
+    <string name="delete_repo">Eliminar repositorio</string>
+    <string name="user">Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="first_fragment_label">Primer Fragmento</string>
+    <string name="second_fragment_label">Segundo Fragmento</string>
 </resources>

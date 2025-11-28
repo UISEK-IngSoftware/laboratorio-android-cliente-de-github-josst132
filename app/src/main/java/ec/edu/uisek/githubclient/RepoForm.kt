@@ -1,20 +1,17 @@
 package ec.edu.uisek.githubclient
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ec.edu.uisek.githubclient.databinding.ActivityRepoFormBinding
 import ec.edu.uisek.githubclient.models.Repo
-import ec.edu.uisek.githubclient.models.RepoRequest
-import ec.edu.uisek.githubclient.services.GithubApiService
-import ec.edu.uisek.githubclient.services.RetrofitClient
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import ec.edu.uisek.githubclient.models.RepoOwner
 
 class RepoForm : AppCompatActivity() {
     private lateinit var binding: ActivityRepoFormBinding
+    private var existingRepo: Repo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,63 +19,40 @@ class RepoForm : AppCompatActivity() {
         binding = ActivityRepoFormBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        existingRepo = intent.getParcelableExtra("repo_key")
+
+        existingRepo?.let {
+            binding.repoNameInput.setText(it.name)
+            binding.repoDescriptionInput.setText(it.description)
+        }
+
         binding.cancelButton.setOnClickListener { finish() }
-        binding.saveButton.setOnClickListener { createRepo() }
-
+        binding.saveButton.setOnClickListener { saveRepo() }
     }
 
-    private fun validateForm() : Boolean {
-        val repoName = binding.repoNameInput.text.toString()
-
-        if (repoName.isBlank()) {
-            binding.repoNameInput.error = "El nombre del repositorio es requerido"
-            return false
-        }
-
-        if (repoName.contains(" ")) {
-            binding.repoNameInput.error = "El nombre del repositorio no puede contener espacios"
-            return false
-        }
-
-        binding.repoNameInput.error = null
-        return true
-    }
-
-    private fun createRepo() {
-        if (!validateForm()) {
-            return
-        }
+    private fun saveRepo() {
         val repoName = binding.repoNameInput.text.toString().trim()
         val repoDescription = binding.repoDescriptionInput.text.toString().trim()
 
-        val repoRequest = RepoRequest(repoName, repoDescription)
-        val apiService = RetrofitClient.GitHubApiServices
-        val call = apiService.addRepo(repoRequest)
+        if (repoName.isBlank()) {
+            Toast.makeText(this, "El nombre del repositorio es requerido", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        call.enqueue(object : Callback<Repo> {
-            override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
-                if (response.isSuccessful) {
-                    showMessage("Repositorio creado exitosamente")
-                    setResult(Activity.RESULT_OK)
-                    finish()
-                } else {
-                    val errorMessage = when (response.code()) {
-                        401 -> "No autorizado"
-                        403 -> "Prohibido"
-                        422 -> "Error de validación (el repositorio puede que ya exista)"
-                        else -> "Error ${response.code()}"
-                    }
-                    showMessage("Error: $errorMessage")
-                }
-            }
+        val resultIntent = Intent()
+        val repo = existingRepo?.apply {
+            name = repoName
+            description = repoDescription
+        } ?: Repo(
+            id = System.currentTimeMillis(),
+            name = repoName,
+            description = repoDescription,
+            language = "Kotlin",
+            owner = RepoOwner(id = 1, login = "MiUsuario", avatarUrl = "")
+        )
 
-            override fun onFailure(call: Call<Repo>, t: Throwable) {
-                showMessage("Error al crear el repositorio: ${t.message}")
-            }
-        })
-    }
-
-    private fun showMessage(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        resultIntent.putExtra("repo_key", repo)
+        setResult(Activity.RESULT_OK, resultIntent)
+        finish()
     }
 }
